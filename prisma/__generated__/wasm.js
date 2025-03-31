@@ -246,6 +246,14 @@ exports.Prisma.TokenScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.OtpCodeScalarFieldEnum = {
+  id: 'id',
+  phone: 'phone',
+  code: 'code',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -337,7 +345,8 @@ exports.Prisma.ModelName = {
   ActivityLog: 'ActivityLog',
   Complaint: 'Complaint',
   Account: 'Account',
-  Token: 'Token'
+  Token: 'Token',
+  OtpCode: 'OtpCode'
 };
 
 /**

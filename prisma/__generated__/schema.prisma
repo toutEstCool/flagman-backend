@@ -230,6 +230,16 @@ model Token {
   @@map("Tokens")
 }
 
+model OtpCode {
+  id        String   @id @default(uuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+}
+
 enum TokenType {
   VERIFICATION
   PASSWORD_RESET
