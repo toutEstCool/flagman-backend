@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { ScheduleModule } from '@nestjs/schedule'
 
 import { AuthModule } from './auth/auth.module'
 import { IS_DEV_ENV } from './libs/common/utils/is-dev.util'
-import { TwilioModule } from './libs/twilio/twilio.module'
 import { PrismaModule } from './prisma/prisma.module'
+import { TwilioModule } from './twilio/twilio.module'
 import { UserModule } from './user/user.module'
 
 @Module({
@@ -13,6 +14,7 @@ import { UserModule } from './user/user.module'
       ignoreEnvFile: !IS_DEV_ENV,
       isGlobal: true
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     TwilioModule,
     AuthModule,

@@ -1,9 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException
+} from '@nestjs/common'
 import { randomInt } from 'crypto'
-import { addMinutes } from 'date-fns'
+import { addMinutes, subMinutes } from 'date-fns'
 
-import { TwilioService } from '@/libs/twilio/twilio.service'
+import { BaseResponse } from '@/libs/common/types/base-response'
 import { PrismaService } from '@/prisma/prisma.service'
+import { TwilioService } from '@/twilio/twilio.service'
 
 @Injectable()
 export class AuthService {
@@ -15,6 +20,22 @@ export class AuthService {
   public async sendCode(phone: string) {
     const code = randomInt(100000, 999999).toString()
     const expiresAt = addMinutes(new Date(), 3)
+
+    const recentCode = await this.prisma.otpCode.findFirst({
+      where: {
+        phone,
+        createdAt: {
+          gte: subMinutes(new Date(), 1)
+        }
+      }
+    })
+
+    if (recentCode) {
+      throw new BadRequestException({
+        success: false,
+        message: 'Код уже был отправлен недавно. Повторите позже.'
+      })
+    }
 
     await this.prisma.otpCode.create({
       data: { phone, code, expiresAt }
@@ -28,7 +49,10 @@ export class AuthService {
       )
     }
 
-    return { message: 'Код отправлен' }
+    return {
+      success: true,
+      message: 'Код успешно отправлен'
+    }
   }
 
   public async verifyCode(phone: string, code: string) {
@@ -43,15 +67,30 @@ export class AuthService {
     })
 
     if (!otpRecord) {
-      throw new Error('Неверный код')
+      throw new UnauthorizedException({
+        success: false,
+        message: 'Неверный код. Попробуйте ещё раз.'
+      })
     }
 
-    const now = new Date()
-
-    if (otpRecord.expiresAt < now) {
-      throw new BadRequestException('Срок действия кода истек')
+    if (otpRecord.expiresAt < new Date()) {
+      throw new BadRequestException({
+        success: false,
+        message: 'Срок действия кода истёк. Запросите новый.'
+      })
     }
 
-    return { message: 'Код подтвержден' }
+    await this.prisma.otpCode.delete({ where: { id: otpRecord.id } })
+
+    // TODO: авторизация или создание пользователя
+
+    return {
+      success: true,
+      message: 'Код подтвержден',
+      data: {
+        userId: 1,
+        jwt: 'eyJhbGciOi...'
+      }
+    } satisfies BaseResponse<{ userId: number; jwt: string }>
   }
 }

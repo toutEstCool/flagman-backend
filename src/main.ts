@@ -1,14 +1,17 @@
-import { ValidationPipe } from '@nestjs/common'
+import { ValidationPipe, VersioningType } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { RedisStore } from 'connect-redis'
 import * as cookieParser from 'cookie-parser'
 import * as session from 'express-session'
 import IORedis from 'ioredis'
 
 import { AppModule } from './app.module'
+import { AllExceptionsFilter } from './libs/common/utils/http-exception.filter'
 import { ms, StringValue } from './libs/common/utils/ms.util'
 import { parseBoolean } from './libs/common/utils/parse-boolean.util'
+import { ResponseInterceptor } from './libs/common/utils/response.interceptor'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -23,6 +26,8 @@ async function bootstrap() {
       transform: true
     })
   )
+
+  app.useGlobalFilters(new AllExceptionsFilter())
 
   app.use(
     session({
@@ -49,6 +54,23 @@ async function bootstrap() {
     credentials: true,
     exposedHeaders: ['set-cookie']
   })
+
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1'
+  })
+
+  app.useGlobalInterceptors(new ResponseInterceptor())
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Flagman API')
+    .setDescription('Документация API сервиса Flagman')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build()
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig)
+  SwaggerModule.setup('api/docs', app, document)
 
   await app.listen(config.getOrThrow<number>('APPLICATION_PORT'))
 }
