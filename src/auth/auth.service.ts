@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common'
 import { randomInt } from 'crypto'
 import { addMinutes, subMinutes } from 'date-fns'
+import { Request } from 'express'
 
 import { BaseResponse } from '@/libs/common/types/base-response'
 import { PrismaService } from '@/prisma/prisma.service'
@@ -55,7 +56,7 @@ export class AuthService {
     }
   }
 
-  public async verifyCode(phone: string, code: string) {
+  public async verifyCode(phone: string, code: string, request: Request) {
     const otpRecord = await this.prisma.otpCode.findFirst({
       where: {
         phone,
@@ -82,15 +83,23 @@ export class AuthService {
 
     await this.prisma.otpCode.delete({ where: { id: otpRecord.id } })
 
-    // TODO: авторизация или создание пользователя
+    let user = await this.prisma.user.findUnique({ where: { phone } })
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: { phone }
+      })
+    }
+
+    request.session.userId = user.id
+    await new Promise(resolve => request.session.save(resolve))
 
     return {
       success: true,
-      message: 'Код подтвержден',
+      message: 'Код подтвержден, пользователь авторизован',
       data: {
-        userId: 1,
-        jwt: 'eyJhbGciOi...'
+        userId: user.id
       }
-    } satisfies BaseResponse<{ userId: number; jwt: string }>
+    } satisfies BaseResponse<{ userId: string }>
   }
 }

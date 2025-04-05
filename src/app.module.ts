@@ -6,7 +6,7 @@ import { AuthModule } from './auth/auth.module'
 import { IS_DEV_ENV } from './libs/common/utils/is-dev.util'
 import { PrismaModule } from './prisma/prisma.module'
 import { TwilioModule } from './twilio/twilio.module'
-import { UserModule } from './user/user.module'
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { UserModule } from './user/user.module'
     PrismaModule,
     TwilioModule,
     AuthModule,
-    UserModule
+    UsersModule
   ]
 })
 export class AppModule {}

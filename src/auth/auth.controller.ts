@@ -1,5 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common'
+import { Body, Controller, Post, Req } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
+import { Request } from 'express'
 
 import { ApiErrorResponse } from '@/libs/common/decorators/api-error.decorator'
 import { ApiBaseResponse } from '@/libs/common/decorators/api-response.decorator'
@@ -24,7 +25,7 @@ export class AuthController {
   @ApiBaseResponse(VerifyCodeResponseDto, 'Код подтвержден')
   @ApiErrorResponse('Срок действия кода истек')
   @ApiErrorResponse('Неверный код', 401)
-  async verifyCode(@Body() dto: VerifyCodeDto) {
-    return this.authService.verifyCode(dto.phone, dto.code)
+  async verifyCode(@Body() dto: VerifyCodeDto, @Req() req: Request) {
+    return this.authService.verifyCode(dto.phone, dto.code, req)
   }
 }

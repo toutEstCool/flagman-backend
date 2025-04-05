@@ -20,7 +20,7 @@ export class VerifyCodeDto {
 
 class VerifyCodeData {
   @ApiProperty({ example: 1, description: 'ID пользователя' })
-  userId: number
+  userId: string
 
   @ApiProperty({
     example: 'eyJhbGciOiJIUzI1NiIsInR...',
