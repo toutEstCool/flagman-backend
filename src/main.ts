@@ -1,23 +1,21 @@
 import { ValidationPipe, VersioningType } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { RedisStore } from 'connect-redis'
 import * as cookieParser from 'cookie-parser'
 import * as session from 'express-session'
 import IORedis from 'ioredis'
 
-import { AppModule } from './app.module'
-import { AllExceptionsFilter } from './libs/common/utils/http-exception.filter'
-import { ms, StringValue } from './libs/common/utils/ms.util'
-import { parseBoolean } from './libs/common/utils/parse-boolean.util'
-import { ResponseInterceptor } from './libs/common/utils/response.interceptor'
+import { CoreModule } from './core/core.module'
+import './shared/graphql/enums/register-enums'
+import { ms, type StringValue } from './shared/utils/ms.util'
+import { parseBoolean } from './shared/utils/parse-boolean.util'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(CoreModule)
 
   const config = app.get(ConfigService)
-  const redis = new IORedis(config.getOrThrow('REDIS_URI'))
+  const redis = new IORedis(config.getOrThrow('REDIS_URL'))
 
   app.use(cookieParser(config.getOrThrow<string>('COOKIE_SECRET')))
 
@@ -27,13 +25,11 @@ async function bootstrap() {
     })
   )
 
-  app.useGlobalFilters(new AllExceptionsFilter())
-
   app.use(
     session({
       secret: config.getOrThrow<string>('SESSION_SECRET'),
       name: config.getOrThrow<string>('SESSION_NAME'),
-      resave: true,
+      resave: false,
       saveUninitialized: false,
       cookie: {
         domain: config.getOrThrow<string>('SESSION_DOMAIN'),
@@ -59,18 +55,6 @@ async function bootstrap() {
     type: VersioningType.URI,
     defaultVersion: '1'
   })
-
-  app.useGlobalInterceptors(new ResponseInterceptor())
-
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Flagman API')
-    .setDescription('Документация API сервиса Flagman')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build()
-
-  const document = SwaggerModule.createDocument(app, swaggerConfig)
-  SwaggerModule.setup('api/docs', app, document)
 
   await app.listen(config.getOrThrow<number>('APPLICATION_PORT'))
 }

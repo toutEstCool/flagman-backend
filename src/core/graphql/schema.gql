@@ -1,0 +1,58 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type LogoutOutput {
+  message: String!
+  success: Boolean!
+}
+
+type Mutation {
+  logoutUser: LogoutOutput!
+  sendCode(data: SendCodeInput!): OtpSendCodeModel!
+  verifyCode(data: VerifyCodeInput!): UserModel!
+}
+
+type OtpSendCodeModel {
+  expiresAt: DateTime
+  message: String!
+  nextTryIn: Float
+  success: Boolean!
+}
+
+type Query {
+  ping: String!
+}
+
+input SendCodeInput {
+  phone: String!
+}
+
+type UserModel {
+  authType: String!
+  avatarUrl: String
+  city: String
+  createdAt: DateTime!
+  deletedAt: DateTime
+  email: String
+  id: ID!
+  isTwoFactorEnabled: Boolean!
+  isVerified: Boolean!
+  lastLogin: DateTime
+  meta: String
+  name: String
+  phone: String
+  role: String!
+  status: String!
+  updatedAt: DateTime!
+}
+
+input VerifyCodeInput {
+  code: String!
+  phone: String!
+}
