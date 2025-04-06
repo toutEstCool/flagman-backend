@@ -1,23 +1,26 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException
 } from '@nestjs/common'
 import { randomInt } from 'crypto'
 import { addMinutes, differenceInSeconds, subMinutes } from 'date-fns'
 
+import { JwtService } from '@/src/core/jwt/jwt.service'
 import { PrismaService } from '@/src/core/prisma/prisma.service'
 import { TwilioService } from '@/src/core/twilio/twilio.service'
 
 import { SendCodeInput, VerifyCodeInput } from './inputs/otp-code.input'
 import { OtpSendCodeModel } from './models/otp.model'
-import { UserModel } from './models/user.model'
+import { AuthPayload } from './models/user.model'
 
 @Injectable()
 export class AccountService {
   public constructor(
     private readonly prismaService: PrismaService,
-    private readonly twilioService: TwilioService
+    private readonly twilioService: TwilioService,
+    private readonly jwtService: JwtService
   ) {}
 
   public async sendCode(input: SendCodeInput): Promise<OtpSendCodeModel> {
@@ -50,7 +53,18 @@ export class AccountService {
       data: { phone, code, expiresAt }
     })
 
-    await this.twilioService.sendSms(phone, `Ваш код: ${code}`)
+    try {
+      await this.twilioService.sendSms(phone, `Ваш код: ${code}`)
+    } catch (error) {
+      if (error?.code === 63038 || error?.status === 429) {
+        throw new BadRequestException(
+          'Лимит отправки SMS исчерпан. Попробуйте позже.'
+        )
+      }
+
+      console.error('Ошибка Twilio при отправке кода:', error)
+      throw new InternalServerErrorException('Не удалось отправить SMS.')
+    }
 
     if (process.env.NODE_ENV === 'development') {
       console.log(
@@ -66,7 +80,7 @@ export class AccountService {
     }
   }
 
-  public async verifyCode(input: VerifyCodeInput): Promise<UserModel> {
+  public async verifyCode(input: VerifyCodeInput): Promise<AuthPayload> {
     const { code, phone } = input
 
     const otpRecord = await this.prismaService.otpCode.findFirst({
@@ -99,7 +113,11 @@ export class AccountService {
         }
       })
     }
+    const tokens = await this.jwtService.issueTokens(user)
 
-    return user
+    return {
+      user,
+      ...tokens
+    }
   }
 }

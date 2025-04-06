@@ -50,3 +50,15 @@ export class UserModel {
   @Field(() => String, { nullable: true })
   meta?: any
 }
+
+@ObjectType()
+export class AuthPayload {
+  @Field(() => UserModel)
+  user: UserModel
+
+  @Field()
+  accessToken: string
+
+  @Field()
+  refreshToken: string
+}

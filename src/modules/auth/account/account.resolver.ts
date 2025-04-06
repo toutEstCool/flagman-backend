@@ -3,7 +3,7 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { AccountService } from './account.service'
 import { SendCodeInput, VerifyCodeInput } from './inputs/otp-code.input'
 import { OtpSendCodeModel } from './models/otp.model'
-import { UserModel } from './models/user.model'
+import { AuthPayload } from './models/user.model'
 
 @Resolver('Account')
 export class AccountResolver {
@@ -14,10 +14,10 @@ export class AccountResolver {
     return await this.accountService.sendCode(input)
   }
 
-  @Mutation(() => UserModel, { name: 'verifyCode' })
+  @Mutation(() => AuthPayload, { name: 'verifyCode' })
   public async verifyCode(
     @Args('data') input: VerifyCodeInput
-  ): Promise<UserModel> {
+  ): Promise<AuthPayload> {
     return this.accountService.verifyCode(input)
   }
 }

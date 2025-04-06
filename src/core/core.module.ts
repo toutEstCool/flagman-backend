@@ -10,6 +10,7 @@ import { IS_DEV_ENV } from '../shared/utils/is-dev.util'
 
 import { getGraphQLConfig } from './config/graphql.config'
 import { CoreResolver } from './core.resolver'
+import { JwtModule } from './jwt/jwt.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { RedisModule } from './redis/redis.module'
 import { TwilioModule } from './twilio/twilio.module'
@@ -28,6 +29,7 @@ import { TwilioModule } from './twilio/twilio.module'
     }),
     ScheduleModule.forRoot(),
     PrismaModule,
+    JwtModule,
     RedisModule,
     TwilioModule,
     AccountModule,
