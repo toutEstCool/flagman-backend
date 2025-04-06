@@ -54,6 +54,8 @@ model User {
   activityLogs   ActivityLog[]
   complaintsSent Complaint[]    @relation("ComplaintSender")
   complaintsToMe Complaint[]    @relation("ComplaintReceiver")
+
+  refreshTokens RefreshToken[]
 }
 
 enum ListingType {
@@ -244,6 +246,15 @@ enum TokenType {
   VERIFICATION
   PASSWORD_RESET
   TWO_FACTOR
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 }
 
 enum ComplaintStatus {
