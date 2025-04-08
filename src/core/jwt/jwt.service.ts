@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService as Jwt } from '@nestjs/jwt'
 import { addDays } from 'date-fns'
@@ -33,5 +33,20 @@ export class JwtService {
     })
 
     return { accessToken, refreshToken }
+  }
+
+  public async verifyAccessToken(token: string): Promise<{ userId: string }> {
+    try {
+      const payload = await this.jwtService.verifyAsync<{ sub: string }>(
+        token,
+        {
+          secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET')
+        }
+      )
+
+      return { userId: payload.sub }
+    } catch (err) {
+      throw new UnauthorizedException('Недействительный access токен')
+    }
   }
 }
