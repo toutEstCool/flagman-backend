@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common'
 
-import { OtpCleanerService } from '../../../core/otp/otp-cleaner.service'
-import { SessionModule } from '../session/session.module'
+import { JwtModule } from '@/src/core/jwt/jwt.module'
+import { PrismaModule } from '@/src/core/prisma/prisma.module'
+
+import { OtpModule } from '../../otp/otp.module'
 
 import { AccountResolver } from './account.resolver'
 import { AccountService } from './account.service'
 
 @Module({
-  imports: [SessionModule],
-  providers: [AccountResolver, AccountService, OtpCleanerService]
+  imports: [PrismaModule, JwtModule, OtpModule],
+  providers: [AccountResolver, AccountService]
 })
 export class AccountModule {}

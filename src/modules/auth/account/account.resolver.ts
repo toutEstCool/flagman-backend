@@ -1,8 +1,9 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
 
+import { SendCodeInput, VerifyCodeInput } from '../../otp/inputs/otp-code.input'
+import { OtpSendCodeModel } from '../../otp/models/otp.model'
+
 import { AccountService } from './account.service'
-import { SendCodeInput, VerifyCodeInput } from './inputs/otp-code.input'
-import { OtpSendCodeModel } from './models/otp.model'
 import { AuthPayload } from './models/user.model'
 
 @Resolver('Account')

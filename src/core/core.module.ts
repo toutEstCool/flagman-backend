@@ -5,7 +5,6 @@ import { GraphQLModule } from '@nestjs/graphql'
 import { ScheduleModule } from '@nestjs/schedule'
 
 import { AccountModule } from '../modules/auth/account/account.module'
-import { SessionModule } from '../modules/auth/session/session.module'
 import { IS_DEV_ENV } from '../shared/utils/is-dev.util'
 
 import { getGraphQLConfig } from './config/graphql.config'
@@ -32,8 +31,7 @@ import { TwilioModule } from './twilio/twilio.module'
     JwtModule,
     RedisModule,
     TwilioModule,
-    AccountModule,
-    SessionModule
+    AccountModule
   ],
   providers: [CoreResolver]
 })
