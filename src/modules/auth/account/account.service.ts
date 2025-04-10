@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 
 import { JwtService } from '@/src/core/jwt/jwt.service'
 import { PrismaService } from '@/src/core/prisma/prisma.service'
+import { GetUserMetadata } from '@/src/shared/utils/user-metadata.util'
 
 import { SendCodeInput, VerifyCodeInput } from '../../otp/inputs/otp-code.input'
 import { OtpSendCodeModel } from '../../otp/models/otp.model'
@@ -21,7 +22,14 @@ export class AccountService {
     return this.otpService.sendCode(input)
   }
 
-  public async verifyCode(input: VerifyCodeInput): Promise<AuthPayload> {
+  public async verifyCode(
+    input: VerifyCodeInput,
+    req: Request,
+    userAgent: string
+  ): Promise<AuthPayload> {
+    const metadata = GetUserMetadata(req, userAgent)
+    console.log('[METADATA]', metadata)
+
     await this.otpService.verifyCode(input)
 
     let user = await this.prismaService.user.findUnique({

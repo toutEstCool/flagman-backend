@@ -2,6 +2,8 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
 
 import { Authorization } from '@/src/shared/decorators/auth.decorator'
 import { Authorized } from '@/src/shared/decorators/authorized.decorator'
+import { Req } from '@/src/shared/decorators/request.decorator'
+import { UserAgent } from '@/src/shared/decorators/user-agent.decorator'
 
 import { SendCodeInput, VerifyCodeInput } from '../../otp/inputs/otp-code.input'
 import { OtpSendCodeModel } from '../../otp/models/otp.model'
@@ -20,9 +22,11 @@ export class AccountResolver {
 
   @Mutation(() => AuthPayload, { name: 'verifyCode' })
   public async verifyCode(
-    @Args('data') input: VerifyCodeInput
+    @Args('data') input: VerifyCodeInput,
+    @UserAgent() userAgent: string,
+    @Req() req: Request
   ): Promise<AuthPayload> {
-    return this.accountService.verifyCode(input)
+    return this.accountService.verifyCode(input, req, userAgent)
   }
 
   @Authorization()
