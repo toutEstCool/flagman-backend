@@ -14,7 +14,19 @@ export class JwtService {
   ) {}
 
   public async issueTokens(user: { id: string; phone: string }) {
-    const payload = { sub: user.id, phone: user.phone }
+    const refreshTokenRecord = await this.prismaService.refreshToken.create({
+      data: {
+        token: 'placeholder',
+        userId: user.id,
+        expiresAt: addDays(new Date(), 7)
+      }
+    })
+
+    const payload = {
+      sub: user.id,
+      phone: user.phone,
+      refreshTokenId: refreshTokenRecord.id
+    }
 
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: this.configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN'),
@@ -28,12 +40,9 @@ export class JwtService {
       secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET')
     })
 
-    await this.prismaService.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId: user.id,
-        expiresAt: addDays(new Date(), 7)
-      }
+    await this.prismaService.refreshToken.update({
+      where: { id: refreshTokenRecord.id },
+      data: { token: refreshToken }
     })
 
     return { accessToken, refreshToken }
@@ -41,12 +50,22 @@ export class JwtService {
 
   public async verifyAccessToken(token: string): Promise<{ userId: string }> {
     try {
-      const payload = await this.jwtService.verifyAsync<{ sub: string }>(
-        token,
-        {
-          secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET')
-        }
-      )
+      const payload = await this.jwtService.verifyAsync<{
+        sub: string
+        refreshTokenId: string
+      }>(token, {
+        secret: this.configService.getOrThrow('JWT_ACCESS_SECRET')
+      })
+
+      const exists = await this.prismaService.refreshToken.findUnique({
+        where: { id: payload.refreshTokenId }
+      })
+
+      if (!exists) {
+        throw new UnauthorizedException(
+          'Access токен отозван или refresh токен удалён'
+        )
+      }
 
       return { userId: payload.sub }
     } catch (err) {

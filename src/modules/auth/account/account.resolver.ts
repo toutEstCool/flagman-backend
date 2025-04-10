@@ -30,4 +30,12 @@ export class AccountResolver {
   public async getMe(@Authorized('id') id: string) {
     return this.accountService.getMe(id)
   }
+
+  @Authorization()
+  @Mutation(() => Boolean, { name: 'logout' })
+  public async logout(@Authorized('id') userId: string): Promise<boolean> {
+    const result = await this.accountService.logout(userId)
+
+    return result.success
+  }
 }

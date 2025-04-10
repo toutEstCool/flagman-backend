@@ -57,4 +57,12 @@ export class AccountService {
 
     return user
   }
+
+  public async logout(userId: string) {
+    const result = await this.prismaService.refreshToken.deleteMany({
+      where: { userId }
+    })
+
+    return { success: result.count > 0 }
+  }
 }
