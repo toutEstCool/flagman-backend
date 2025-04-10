@@ -12,7 +12,7 @@ import { AuthPayload } from './models/user.model'
 @Injectable()
 export class AccountService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prismaService: PrismaService,
     private readonly otpService: OtpService,
     private readonly jwtService: JwtService
   ) {}
@@ -24,12 +24,12 @@ export class AccountService {
   public async verifyCode(input: VerifyCodeInput): Promise<AuthPayload> {
     await this.otpService.verifyCode(input)
 
-    let user = await this.prisma.user.findUnique({
+    let user = await this.prismaService.user.findUnique({
       where: { phone: input.phone }
     })
 
     if (!user) {
-      user = await this.prisma.user.create({
+      user = await this.prismaService.user.create({
         data: {
           phone: input.phone,
           email: 'test@gmail.com',
@@ -46,5 +46,15 @@ export class AccountService {
       user,
       ...tokens
     }
+  }
+
+  public async getMe(id: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id
+      }
+    })
+
+    return user
   }
 }

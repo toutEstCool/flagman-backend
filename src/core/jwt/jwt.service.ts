@@ -17,11 +17,15 @@ export class JwtService {
     const payload = { sub: user.id, phone: user.phone }
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: this.configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN')
+      expiresIn: this.configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN'),
+      secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET')
     })
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      expiresIn: this.configService.getOrThrow<string>('JWT_REFRESH_EXPIRES_IN')
+      expiresIn: this.configService.getOrThrow<string>(
+        'JWT_REFRESH_EXPIRES_IN'
+      ),
+      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET')
     })
 
     await this.prismaService.refreshToken.create({

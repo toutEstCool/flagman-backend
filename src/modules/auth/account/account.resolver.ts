@@ -1,10 +1,13 @@
-import { Args, Mutation, Resolver } from '@nestjs/graphql'
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
+
+import { Authorization } from '@/src/shared/decorators/auth.decorator'
+import { Authorized } from '@/src/shared/decorators/authorized.decorator'
 
 import { SendCodeInput, VerifyCodeInput } from '../../otp/inputs/otp-code.input'
 import { OtpSendCodeModel } from '../../otp/models/otp.model'
 
 import { AccountService } from './account.service'
-import { AuthPayload } from './models/user.model'
+import { AuthPayload, UserModel } from './models/user.model'
 
 @Resolver('Account')
 export class AccountResolver {
@@ -20,5 +23,11 @@ export class AccountResolver {
     @Args('data') input: VerifyCodeInput
   ): Promise<AuthPayload> {
     return this.accountService.verifyCode(input)
+  }
+
+  @Authorization()
+  @Query(() => UserModel, { name: 'getMe' })
+  public async getMe(@Authorized('id') id: string) {
+    return this.accountService.getMe(id)
   }
 }

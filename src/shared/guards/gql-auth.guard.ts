@@ -21,12 +21,14 @@ export class GqlAuthGuard implements CanActivate {
     const request = ctx.getContext().req
 
     const authHeader = request.headers.authorization || ''
-    const token = authHeader.replace('Bearer ', '')
+    console.log('[AUTH] Header:', authHeader)
+
+    const token = authHeader?.split(' ')[1]
+    console.log('[AUTH] Token:', token)
 
     if (!token) {
-      throw new UnauthorizedException('Пользователь не авторизован')
+      throw new UnauthorizedException('Отсутствует access токен')
     }
-
     let payload: { userId: string }
 
     try {
